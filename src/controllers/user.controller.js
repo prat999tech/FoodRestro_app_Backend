@@ -5,6 +5,19 @@ import { order } from "../models/order.model.js"
 import { asyncHandler} from "../utils/asynchandler.js"
 import { uploadoncloudinary } from "../utils/coudinary"
 import jwt from "jsonwebtoken"
+const generateaccessandrefreshtoken=async(Userid)=>{
+    try{
+        const user=User.findById(Userid)
+        const accesstoken=await user.generateAccessToken()
+        const refreshtoken=await user.generateRefreshToken()
+        user.refreshtoken=refreshtoken;
+        return {accesstoken,refreshtoken}
+    }catch(error){
+        console.error(error,"error occurred at genrating access token");
+        throw new apierror(404,"error occurred")
+    }
+
+}
 const registeruser=asyncHandler(async(req,res)=>{
     const{fullname,username,email,password}=req.body;
     if (
@@ -51,3 +64,91 @@ const registeruser=asyncHandler(async(req,res)=>{
 
 
 })
+const loginUser=asyncHandler(async(req,res)=>{
+    const{username,email,password}=req.body
+   if (!username && !email){
+        throw new apierror(400,"username or email is required");
+    }
+    const user=User.find(
+        {
+            $or:[{username},{email}]
+        }
+    )
+    
+    if(!user){
+        throw new apierror(404,"user not found")
+    }
+     const isPasswordValid=await user.isPasswordCorrect(password)
+     if(!isPasswordValid){
+        throw new apierror(401,"invalid password")
+
+     }
+     const {accesstoken,refreshtoken}=generateaccessandrefreshtoken(user._id);
+     const loggedInuser=User.findById(user._id).select("-password -refreshtoken")
+     const options={
+        httpOnly:true,
+        secure:true,
+       }
+       return res.status(200).cookie("refresh token",refreshtoken,options).cookie("access token",accesstoken,options).
+       json(new apiresponse(200,loggedInuser,"user logged in "))
+
+})
+const logoutuser=asyncHandler(async(req,res)=>{
+    const user=User.findByIdAndUpdate(req.user._id,
+        {
+            $set:{
+                refreshtoken:undefined
+            }
+        }
+    )
+    const options={
+        httpOnly:true,
+        secure:true,
+    }
+    return res.status(200).clearcookie("accesstoken",accesstoken,options).clearcookie("refreshtoken",refreshtoken,options).
+    json(new apiresponse(200,user,"user logged out"))
+})
+const refreshaccesstoken=asyncHandler(async(req,res)=>{
+    const incomingrefreshtoken=req.cookies.refreshtoken || req.body.refreshtoken;
+    if(!incomingrefreshtoken){
+        throw new apierror(404,"refreshtoken is required");
+        
+    }
+    const decodedtoken=jwt.verify(incomingrefreshtoken,process.env.REFRESH_TOKEN_SECRET);
+    const user=await User.findById(decodedtoken?.id).select("-password");
+    if(!user){
+        throw new apierror(401,"user not found");
+    }
+     if(incomingrefreshtoken!=user.refreshtoken){
+            throw new apierror(401,"refresh token expired or user expired")
+        }
+        const options={
+            httpOnly:true,
+            secure:true
+        }
+        const {accesstoken,newrefreshtoken}=generateaccessandrefreshtoken(user._id)
+         return res
+        .status(200)
+        .cookie("accesstoken",accesstoken,options)
+        .cookie("refreshtoken",newrefreshtoken,options)
+        .json(
+            new apiresponse(
+                200,
+                {accesstoken,refreshtoken:newrefreshtoken},
+                "Access token refreshed"
+            )
+        )
+})
+const changepassword=asyncHandler(async(req,res)=>{
+    const {oldpassword,newpassword}=req.body;
+    const user=await User.findById(req.user._id);
+    const ismatch=await user.isPasswordCorrect(oldpassword);
+
+})
+
+export{
+    registeruser,
+    loginUser,
+    logoutuser,
+    refreshaccesstoken
+}
