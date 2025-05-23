@@ -143,6 +143,114 @@ const changepassword=asyncHandler(async(req,res)=>{
     const {oldpassword,newpassword}=req.body;
     const user=await User.findById(req.user._id);
     const ismatch=await user.isPasswordCorrect(oldpassword);
+    if(!ismatch){
+        throw new apierror(401,"old password is incorrect");
+    }
+    user.password=newpassword;
+     await user.save({validateBeforeSave:false})
+    return res.status(200).json(
+        new apiresponse(200,user,"password changed")
+    )
+
+})
+const getuserdetails=asyncHandler(async(req,res)=>{
+
+    
+    const user=await User.findById(req.user._id).select("-password");
+    return res.status(200).json(
+        new apiresponse(200,user,"user details")
+    )
+
+})
+const updateaccountdetails=asyncHandler(async(req,res)=>{
+    const{username,email,fullname}=req.body;
+    if(!username){
+        throw new apierror(400,"username is required");
+    }
+    const updateuser=await User.findByIdAndUpdate(req.user._id,
+        {
+            $set:{
+                username:username,
+                email:email,
+                fullname:fullname
+            }
+        },
+        {
+            new:true
+        }
+    )
+    return res.status(200).json(
+        new apiresponse(200,updateuser,"account details updated")
+    )
+})
+const updateavatar=asyncHandler(async(req,res)=>{
+    const avatarlocalpath=req.files.path;
+     if(!avatarlocalpath){
+        throw new apierror(400,"avatar is required");
+    }
+    const avatar=await uploadoncloudinary(avatarlocalpath)
+    if(!avatar.url){
+        throw new apierror(400,"avatar upload failed")
+    }
+    const updateuser=await User.findByIdAndUpdate(req.user._id,
+        {
+            $set:{
+                avatar:avatar.url
+            }
+        },
+        {
+            new:true
+        }
+    )
+    return res.status(200).json(
+        new apiresponse(200,updateuser,"avatar updated")
+    )
+})
+const updatecoverimage=asyncHandler(async(req,res)=>{
+    const coverlocalpath=req.files.path;
+    if(!coverlocalpath){
+        throw new apierror(400,"cover image is required");
+        }
+        const cover=await uploadoncloudinary(coverlocalpath)
+        if(!cover.url){
+            throw new apierror(400,"cover image upload failed")
+        }
+        const updateuser=await User.findByIdAndUpdate(req.user._id,
+            {
+                $set:{
+                    cover:cover.url
+                }
+            },
+            {
+                new:true
+            }
+        )
+        return res.status(200).json(
+            new apiresponse(200,updateuser,"cover image updated")
+            )
+})
+
+const getuserorder=asyncHandler(async(req,res)=>{
+    const userid=req.query;
+    const user=await User.findById(userid);
+    if(!user){
+        throw new apierror(404,"user not found")
+    }
+    const userorder=await order.find({
+        customerid:userid
+    }).sort({createdAt:-1})
+    .populate({
+        path:"itemorder",
+        model:"food"
+
+    })
+    .populate({
+        path:"paymentid",
+        model:"payment"
+    })
+    return res.status(200).json(
+        new apiresponse(200,userorder,"user order")
+    )
 
 })
 
@@ -150,5 +258,10 @@ export{
     registeruser,
     loginUser,
     logoutuser,
-    refreshaccesstoken
+    refreshaccesstoken,
+    changepassword,
+    getuserdetails,
+    updateavatar,
+    updatecoverimage,
+    updateaccountdetails
 }
