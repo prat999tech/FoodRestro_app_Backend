@@ -50,11 +50,14 @@ const updatefooditem=asyncHandler(async(req,res)=>{
         }
         const foodupadte=await food.findByIdAndUpdate(foodid,
             {
-                $set:{
+                $set:
+                {
             foodname,
             price,
             restaurent,
-            isAvailabe
+            isAvailabe,
+            description,
+            rating
                 }
             },
         

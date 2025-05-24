@@ -15,9 +15,12 @@ const orderschema= new mongoose.Schema({
     
     itemorder:[
         {
+          
             type:mongoose.Schema.Types.ObjectId,
-            ref:"food"
-        }
+            ref:"food",
+            required:true
+        },
+        
     ],
      status: {
       type: String,
@@ -29,10 +32,7 @@ const orderschema= new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'payment' 
     },
-    totalamount:{
-        type:Number,
-        requires:true,
-    },
+    
     price:{
         type:Number,
         requires:true,
