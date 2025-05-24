@@ -31,7 +31,7 @@ const ordercreate= await order.create({
     deliveryAddress
 })
 cart.items=[];
-await cart.save()
+await cart.save();
 await ordercreate.save();
 if(!ordercreate){
     throw new apierror(400,"order not created")
@@ -41,5 +41,7 @@ return res.status(200).json(
 )
 
 
-
 })
+export{
+    createorderfromcart
+}
