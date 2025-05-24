@@ -35,7 +35,7 @@ const restaurentschema=new mongoose.Schema({
       type: Boolean,
       default: true,
     },
-    coverimage:{
+    coverImage:{
         type:String
     },
    address:{
