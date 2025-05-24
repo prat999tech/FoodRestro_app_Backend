@@ -5,6 +5,14 @@ const orderschema= new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"User"
     },
+    restaurent:[{
+      type:mongoose.Schema.Types.ObjectId,
+      ref:"restaurent"
+    }
+  ],
+
+
+    
     itemorder:[
         {
             type:mongoose.Schema.Types.ObjectId,

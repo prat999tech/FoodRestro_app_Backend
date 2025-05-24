@@ -3,8 +3,9 @@ import { apiresponse} from "../utils/apiresponse.js"
 import { apierror} from "../utils/apierror.js"
 import { order } from "../models/order.model.js"
 import { asyncHandler} from "../utils/asynchandler.js"
-import { uploadoncloudinary } from "../utils/coudinary"
+import { uploadoncloudinary } from "../utils/coudinary.js"
 import jwt from "jsonwebtoken"
+import { sendEmail } from "../service/email.js"
 const generateaccessandrefreshtoken=async(Userid)=>{
     try{
         const user=User.findById(Userid)
@@ -54,6 +55,8 @@ const registeruser=asyncHandler(async(req,res)=>{
         email,
         username:username.toLowerCase()
     })
+    user.save();
+    await sendEmail(user.email,user.fullname);
     const createduser=User.findById(user._id).select("-password -refreshtoken")
     if(!createduser){
         throw new apierror(404,"user not found")
@@ -263,5 +266,6 @@ export{
     getuserdetails,
     updateavatar,
     updatecoverimage,
-    updateaccountdetails
+    updateaccountdetails,
+    getuserorder
 }
