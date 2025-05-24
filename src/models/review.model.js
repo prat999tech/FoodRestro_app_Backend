@@ -9,5 +9,6 @@ const reviewSchema=new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"restaurent",
     }
+    
 },{timestamp:true})
 export const review=mongoose.model("review",reviewSchema);

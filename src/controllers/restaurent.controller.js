@@ -17,7 +17,7 @@ const createrestaurent=asyncHandler(async(req,res)=>{
                     
                     coverImageCloudinaryPath = await uploadoncloudinary(coverImageLocalPath);
                     console.log("coverimage uploaded");
-                    const restaurent = new restaurent({
+                    const restaurent = await restaurent.create({
                         name,
                         email,
                         menu,

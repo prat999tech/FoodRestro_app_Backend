@@ -55,7 +55,7 @@ const registeruser=asyncHandler(async(req,res)=>{
         email,
         username:username.toLowerCase()
     })
-    user.save();
+    await user.save();
     await sendEmail(user.email,user.fullname);
     const createduser=User.findById(user._id).select("-password -refreshtoken")
     if(!createduser){
