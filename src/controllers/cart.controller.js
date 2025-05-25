@@ -1,10 +1,7 @@
 import { asyncHandler } from "../utils/asynchandler.js";
 import { apierror } from "../utils/apierror.js";
 import { apiresponse } from "../utils/apiresponse.js";
-import mongoose from "mongoose";
 import { Cart } from "../models/cart.model.js";
-import { order } from "../models/order.model.js";
-import { food } from "../models/food.model.js";
 
 
 const additemsincart=asyncHandler(async(req,res)=>{
@@ -41,8 +38,52 @@ const additemsincart=asyncHandler(async(req,res)=>{
     )
         
 })
+const deleteitemfromcart=asyncHandler(async(req,res)=>{
+    const userid=req.user._id;
+    const {foodid}=req.params;
+    const cart=await Cart.findOne({userId:userid});
+    if(!cart){
+        throw new apierror(400,"cart not found")
+    }
+    const itemindex=cart.items.findIndex(i=>i.foodId.equals(foodid))
+    if(itemindex==-1){
+        throw new apierror(400,"item not found in cart")
+    }
+    const deleteditem=cart.items.splice(itemindex,1);
+    await cart.save();
+    return res.status(200).json(
+        new apiresponse(200,"item deleted from cart",deleteditem)
+        
+      //The 1 tells splice to remove exactly one item at the specified index.
+     //If you used 2, it would remove two items starting from that index.
+    )
+})
+const updateitemincart=asyncHandler(async(req,res)=>{
+    const userid=req.user._id;
+    const {foodid}=req.params;
+    const {quantity}=req.body;
+    const cart=await Cart.findOne({userId:userid});
+    if(!cart){
+        throw new apierror(400,"cart not found")
+        }
+        const item=cart.items.find(i=>i.foodId.equals(foodid));
+        if(item){
+            item.quantity=+quantity;
+        }
+        else{
+                cart.items.push({ foodId: foodid, quantity: +quantity });
+        }
+         await cart.save();
+
+         return res.status(200).json(
+            new apiresponse(200,"item updated in cart",cart)
+            )
+
+})
 export{
-    additemsincart
+    additemsincart,
+    deleteitemfromcart,
+    updateitemincart
 }
 
 
