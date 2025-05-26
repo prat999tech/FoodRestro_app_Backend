@@ -80,10 +80,22 @@ const updateitemincart=asyncHandler(async(req,res)=>{
             )
 
 })
+const getusercart=asyncHandler(async(req,res)=>{
+    const userid=req.user._id;
+    const cart=await Cart.findOne({userId:userid});
+    if(!cart){
+    throw new apierror(404,"cart not found")
+    }
+    return res.status(200).json(
+        new apiresponse(200,"cart found",cart)
+    )
+            
+})
 export{
     additemsincart,
     deleteitemfromcart,
-    updateitemincart
+    updateitemincart,
+    getusercart
 }
 
 

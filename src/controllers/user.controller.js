@@ -5,7 +5,7 @@ import { order } from "../models/order.model.js"
 import { asyncHandler} from "../utils/asynchandler.js"
 import { uploadoncloudinary } from "../utils/coudinary.js"
 import jwt from "jsonwebtoken"
-import { sendEmail } from "../service/email.js"
+import { sendEmail } from "../service/email.service.js"
 const generateaccessandrefreshtoken=async(Userid)=>{
     try{
         const user=User.findById(Userid)
